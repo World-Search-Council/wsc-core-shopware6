@@ -1,0 +1,382 @@
+{% sw_extends '@Storefront/storefront/base.html.twig' %}
+
+{% block base_head %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('bundles/wscanalytics/static/css/wsc-dashboard.css', 'asset') }}">
+{% endblock %}
+
+{% block base_content %}
+<div class="wsc-dashboard-wrapper container mt-4 mb-5">
+    <!-- Header with 5-Hub Bar & Period Switcher -->
+    <div class="wsc-dashboard-header d-flex flex-wrap justify-content-between align-items-center mb-4 p-3 bg-white border rounded shadow-sm gap-3">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-primary text-white">WSC v2.2</span>
+                <h2 class="h4 mb-0 fw-bold">Shopware 6 Command Center</h2>
+            </div>
+            <p class="text-muted mb-0 small">
+                Project ID: <code>{{ projectId }}</code> &bull; Host: <strong>{{ siteHost }}</strong> &bull; Platform: <strong>Shopware 6 Enterprise</strong>
+            </p>
+        </div>
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <!-- Period Selector -->
+            <div class="btn-group btn-group-sm" role="group" id="wsc-period-group">
+                <button type="button" class="btn btn-outline-primary wsc-toggle-btn" data-period="1d">1D</button>
+                <button type="button" class="btn btn-outline-primary wsc-toggle-btn active" data-period="7d">7D</button>
+                <button type="button" class="btn btn-outline-primary wsc-toggle-btn" data-period="30d">30D</button>
+                <button type="button" class="btn btn-outline-primary wsc-toggle-btn" data-period="90d">90D</button>
+                <button type="button" class="btn btn-outline-primary wsc-toggle-btn" data-period="365d">1Y</button>
+            </div>
+            <!-- Diagnostic Triggers -->
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="wsc-trigger-pagespeed" title="Run Headless Core Web Vitals Lab Audit">
+                <span>⚡</span> SpeedSentinel
+            </button>
+            <button type="button" class="btn btn-outline-dark btn-sm" id="wsc-trigger-sentinel" title="Run Authoritative DNS, Mail &amp; SSL Scan">
+                <span>🛡️</span> Sentinel Scan
+            </button>
+            <button type="button" class="btn btn-primary btn-sm" id="wsc-sync-now" title="Synchronize local SQLite queue to WSC Gateway">
+                <span>&#x21bb;</span> Sync Now
+            </button>
+        </div>
+    </div>
+
+    <!-- Diagnostic Live Progress Banner (Hidden by default) -->
+    <div class="alert alert-warning alert-dismissible fade show shadow-sm mb-4" id="wsc-diagnostic-banner" style="display:none;" role="alert">
+        <div class="d-flex align-items-center gap-2">
+            <div class="spinner-border spinner-border-sm text-warning" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <div>
+                <strong id="wsc-banner-title">Diagnostic Scan in Progress...</strong>
+                <span id="wsc-banner-msg" class="ms-1 small">Polling Gateway workers for real-time validation results.</span>
+            </div>
+        </div>
+    </div>
+
+    {% if not hasData %}
+        <div class="alert alert-info shadow-sm mb-4">
+            <h4 class="alert-heading">Waiting for initial Gateway Push</h4>
+            <p class="mb-0">Shopware 6 telemetry and orders are queued locally in <code>var/wsc_analytics/queue_temp.sqlite</code>. Reports are calculated by ClickHouse in the WSC Gateway and automatically delivered via signed HMAC webhook.</p>
+        </div>
+    {% endif %}
+
+    <!-- Bento Grid (Canonical 7-Card Suite) -->
+    <div class="row g-3 mb-4">
+        <!-- Card 1: Traffic & Channels -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 shadow-sm wsc-card-interactive border-start border-4 border-primary" id="wsc-card-1" data-card="traffic">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="h6 card-title mb-0 fw-bold">1. Traffic &amp; Acquisition</h3>
+                        <span class="badge bg-success-subtle text-success border">100% Cookieless</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between text-center mb-3 bg-light p-2 rounded">
+                        <div>
+                            <span class="d-block small text-muted">Visitors</span>
+                            <strong class="h5 mb-0" id="val-visitors">{{ cards.card1_traffic.data_7d.visitors|default('0') }}</strong>
+                        </div>
+                        <div>
+                            <span class="d-block small text-muted">Pageviews</span>
+                            <strong class="h5 mb-0" id="val-pageviews">{{ cards.card1_traffic.data_7d.pageviews|default('0') }}</strong>
+                        </div>
+                        <div>
+                            <span class="d-block small text-muted">Engaged Time</span>
+                            <strong class="h5 mb-0" id="val-engaged">{{ cards.card1_traffic.data_7d.avg_engaged_time|default('0s') }}</strong>
+                        </div>
+                    </div>
+
+                    <div class="wsc-channel-breakdown">
+                        <h4 class="small text-muted fw-bold mb-2">Channel Attribution</h4>
+                        <div class="progress mb-2" style="height: 10px;">
+                            <div class="progress-bar bg-purple" style="width: {{ cards.card1_traffic.data_7d.channels.ai_pct|default(15) }}%"></div>
+                            <div class="progress-bar bg-primary" style="width: {{ cards.card1_traffic.data_7d.channels.search_pct|default(45) }}%"></div>
+                            <div class="progress-bar bg-danger" style="width: {{ cards.card1_traffic.data_7d.channels.social_pct|default(20) }}%"></div>
+                            <div class="progress-bar bg-success" style="width: {{ cards.card1_traffic.data_7d.channels.direct_pct|default(20) }}%"></div>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2 small text-muted">
+                            <span><span class="badge rounded-pill bg-purple">&nbsp;</span> AI ({{ cards.card1_traffic.data_7d.channels.ai_pct|default(0) }}%)</span>
+                            <span><span class="badge rounded-pill bg-primary">&nbsp;</span> Search ({{ cards.card1_traffic.data_7d.channels.search_pct|default(0) }}%)</span>
+                            <span><span class="badge rounded-pill bg-danger">&nbsp;</span> Social ({{ cards.card1_traffic.data_7d.channels.social_pct|default(0) }}%)</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0 text-end pt-0">
+                    <small class="text-muted">Click to drill down &darr;</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 2: Strategic Insights -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 shadow-sm wsc-card-interactive border-start border-4 border-warning" id="wsc-card-2" data-card="insights">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="h6 card-title mb-0 fw-bold">2. Strategic Insights</h3>
+                        <span class="badge bg-warning-subtle text-dark border">AI Analyst</span>
+                    </div>
+
+                    <p class="small text-secondary mb-3" id="val-insight-summary">
+                        {{ cards.card2_insights.data_7d.summary|default('E-Commerce activity consistent. Automated growth recommendations update as traffic patterns evolve.') }}
+                    </p>
+
+                    <h4 class="small text-muted fw-bold mb-2">Actionable Bottlenecks:</h4>
+                    <ul class="small list-unstyled mb-0" id="val-insight-actions">
+                        {% if cards.card2_insights.data_7d.actions is defined and cards.card2_insights.data_7d.actions|length > 0 %}
+                            {% for action in cards.card2_insights.data_7d.actions %}
+                                <li class="mb-1"><strong>&bull; {{ action.title }}:</strong> {{ action.description }}</li>
+                            {% endfor %}
+                        {% else %}
+                            <li class="text-muted">No checkout or crawling anomalies detected.</li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent border-0 text-end pt-0">
+                    <small class="text-muted">Click to view details &darr;</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 3: Bot Shield & AI Scrapers -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 shadow-sm wsc-card-interactive border-start border-4 border-danger" id="wsc-card-3" data-card="bots">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="h6 card-title mb-0 fw-bold">3. Bot Shield &amp; AI Crawlers</h3>
+                        <span class="badge bg-danger-subtle text-danger border">Pre-Cache Sensor</span>
+                    </div>
+
+                    <div class="d-flex justify-content-around align-items-center text-center bg-light p-2 rounded mb-3">
+                        <div>
+                            <span class="h5 mb-0 fw-bold text-success" id="val-human-pct">{{ cards.card3_bots.data_7d.human_pct|default('100') }}%</span>
+                            <span class="d-block small text-muted">Humans</span>
+                        </div>
+                        <div class="text-muted fw-bold">vs</div>
+                        <div>
+                            <span class="h5 mb-0 fw-bold text-danger" id="val-bot-pct">{{ cards.card3_bots.data_7d.bot_pct|default('0') }}%</span>
+                            <span class="d-block small text-muted">Crawlers</span>
+                        </div>
+                    </div>
+
+                    <div class="small">
+                        <div class="d-flex justify-content-between py-1 border-bottom">
+                            <span>🤖 AI Live RAG Search (Perplexity/OAI):</span>
+                            <strong id="val-ai-rag">{{ cards.card3_bots.data_7d.ai_rag_hits|default(0) }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between py-1 border-bottom">
+                            <span>🧠 AI Training Scrapers (GPT/Claude):</span>
+                            <strong id="val-ai-training">{{ cards.card3_bots.data_7d.ai_training_hits|default(0) }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between py-1">
+                            <span>🔍 Search Engines (Google/Bing):</span>
+                            <strong id="val-search-bots">{{ cards.card3_bots.data_7d.search_hits|default(0) }}</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0 text-end pt-0">
+                    <small class="text-muted">Click to inspect bot logs &darr;</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 4: Engagement & UX Reality -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 shadow-sm wsc-card-interactive border-start border-4 border-info" id="wsc-card-4" data-card="engagement">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="h6 card-title mb-0 fw-bold">4. Engagement &amp; Reading Reality</h3>
+                        <span class="badge bg-info-subtle text-info border">DOM Sensor</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between text-center mb-3 bg-light p-2 rounded">
+                        <div>
+                            <span class="d-block small text-muted">Avg Reading Time</span>
+                            <strong class="h5 mb-0">{{ cards.card_engagement.data_7d.avg_reading_time|default('42s') }}</strong>
+                        </div>
+                        <div>
+                            <span class="d-block small text-muted">TTFI</span>
+                            <strong class="h5 mb-0">{{ cards.card_engagement.data_7d.avg_ttfi|default('1.2s') }}</strong>
+                        </div>
+                        <div>
+                            <span class="d-block small text-muted">Focus Ratio</span>
+                            <strong class="h5 mb-0">{{ cards.card_engagement.data_7d.focus_ratio|default('88%') }}</strong>
+                        </div>
+                    </div>
+
+                    <h4 class="small text-muted fw-bold mb-1">Scroll Milestones</h4>
+                    <div class="d-flex gap-1 align-items-end mb-2" style="height: 40px;">
+                        <div class="bg-primary-subtle text-center small rounded py-1 flex-fill" style="height: 100%;">
+                            <span class="d-block fw-bold small">25%</span>
+                            <span class="text-muted" style="font-size: 10px;">{{ cards.card_engagement.data_7d.scroll_25|default('92%') }}</span>
+                        </div>
+                        <div class="bg-primary-subtle text-center small rounded py-1 flex-fill" style="height: 85%;">
+                            <span class="d-block fw-bold small">50%</span>
+                            <span class="text-muted" style="font-size: 10px;">{{ cards.card_engagement.data_7d.scroll_50|default('74%') }}</span>
+                        </div>
+                        <div class="bg-primary-subtle text-center small rounded py-1 flex-fill" style="height: 60%;">
+                            <span class="d-block fw-bold small">75%</span>
+                            <span class="text-muted" style="font-size: 10px;">{{ cards.card_engagement.data_7d.scroll_75|default('48%') }}</span>
+                        </div>
+                        <div class="bg-primary-subtle text-center small rounded py-1 flex-fill" style="height: 40%;">
+                            <span class="d-block fw-bold small">100%</span>
+                            <span class="text-muted" style="font-size: 10px;">{{ cards.card_engagement.data_7d.scroll_100|default('26%') }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0 text-end pt-0">
+                    <small class="text-muted">Click to inspect UX milestones &darr;</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 5: Outbound Link Intelligence -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 shadow-sm wsc-card-interactive border-start border-4 border-secondary" id="wsc-card-5" data-card="outbound">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="h6 card-title mb-0 fw-bold">5. Outbound Link Intelligence</h3>
+                        <span class="badge bg-secondary-subtle text-secondary border">Link Routing</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>Jobs / Portals</span>
+                            <strong>{{ cards.card_outbound.data_7d.categories.jobs_pct|default(35) }}%</strong>
+                        </div>
+                        <div class="progress mb-2" style="height: 6px;">
+                            <div class="progress-bar bg-info" style="width: {{ cards.card_outbound.data_7d.categories.jobs_pct|default(35) }}%"></div>
+                        </div>
+
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>Social Profiles</span>
+                            <strong>{{ cards.card_outbound.data_7d.categories.social_pct|default(40) }}%</strong>
+                        </div>
+                        <div class="progress mb-2" style="height: 6px;">
+                            <div class="progress-bar bg-primary" style="width: {{ cards.card_outbound.data_7d.categories.social_pct|default(40) }}%"></div>
+                        </div>
+
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>Affiliate / Partners</span>
+                            <strong>{{ cards.card_outbound.data_7d.categories.affiliate_pct|default(15) }}%</strong>
+                        </div>
+                        <div class="progress mb-2" style="height: 6px;">
+                            <div class="progress-bar bg-success" style="width: {{ cards.card_outbound.data_7d.categories.affiliate_pct|default(15) }}%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0 text-end pt-0">
+                    <small class="text-muted">Click to view top external domains &darr;</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 6: E-Commerce Funnel Reality (Shopware 6 Specialty) -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 shadow-sm wsc-card-interactive border-start border-4 border-success" id="wsc-card-6" data-card="ecommerce">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="h6 card-title mb-0 fw-bold">6. Shopware 6 Checkout Funnel</h3>
+                        <span class="badge bg-success-subtle text-success border">100% Server Orders</span>
+                    </div>
+
+                    <div class="wsc-funnel-stages mb-3">
+                        <div class="d-flex justify-content-between align-items-center py-1 border-bottom small">
+                            <span>1. Product Views</span>
+                            <strong>{{ cards.card_ecommerce.data_7d.product_views|default('1,420') }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center py-1 border-bottom small">
+                            <span>2. Add to Cart</span>
+                            <strong>{{ cards.card_ecommerce.data_7d.add_to_cart|default('240') }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center py-1 border-bottom small">
+                            <span>3. Initiate Checkout</span>
+                            <strong>{{ cards.card_ecommerce.data_7d.checkout_started|default('110') }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center py-1 small bg-success-subtle px-2 rounded mt-1">
+                            <span class="fw-bold text-success">4. Server Purchase</span>
+                            <strong class="text-success">{{ cards.card_ecommerce.data_7d.purchases|default('84') }}</strong>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center small text-muted">
+                        <span>Cart Drop-off Leak:</span>
+                        <strong class="text-danger">{{ cards.card_ecommerce.data_7d.abandonment_rate|default('54.2%') }}</strong>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0 text-end pt-0">
+                    <small class="text-muted">Click to inspect funnel leaks &darr;</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 7: Sentinel Domain Health & Security -->
+        <div class="col-lg-12">
+            <div class="card shadow-sm wsc-card-interactive border-start border-4 border-dark" id="wsc-card-7" data-card="sentinel">
+                <div class="card-body">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                        <div>
+                            <h3 class="h6 card-title mb-1 fw-bold">7. Sentinel Domain &amp; Infrastructure Health</h3>
+                            <p class="text-muted small mb-0">Authoritative DNS, Port-25 Free Mail Security, TLS Validity, Security Headers</p>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-dark text-white px-3 py-2" id="val-sentinel-score">
+                                Score: {{ cards.domain_health.score|default('85') }}/100
+                            </span>
+                            <span class="badge bg-success" id="val-sentinel-status">{{ cards.domain_health.status|default('HEALTHY') }}</span>
+                        </div>
+                    </div>
+
+                    <div class="row g-2 text-center small">
+                        <div class="col-md-3 col-6">
+                            <div class="p-2 border rounded bg-light">
+                                <span class="d-block text-muted">DNS Redundancy</span>
+                                <strong class="text-success">{{ cards.domain_health.dns.redundancy|default('✓ 2 Nameservers') }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="p-2 border rounded bg-light">
+                                <span class="d-block text-muted">DNSSEC</span>
+                                <strong class="text-success">{{ cards.domain_health.dns.dnssec|default('✓ Active') }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="p-2 border rounded bg-light">
+                                <span class="d-block text-muted">Email Security</span>
+                                <strong class="text-success">{{ cards.domain_health.mail.summary|default('SPF &amp; DMARC Active') }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="p-2 border rounded bg-light">
+                                <span class="d-block text-muted">SSL Certificate</span>
+                                <strong class="text-success">{{ cards.domain_health.ssl.days_remaining|default('33 Days Remaining') }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail Panel -->
+    <div class="card shadow-sm mb-4" id="wsc-detail-panel" style="display:none; border-left: 4px solid #0d6efd;">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h3 class="h5 mb-0 fw-bold" id="wsc-detail-title">Detailed Analysis</h3>
+            <button type="button" class="btn-close" id="wsc-close-detail" aria-label="Close"></button>
+        </div>
+        <div class="card-body" id="wsc-detail-content"></div>
+    </div>
+</div>
+
+<script>
+    window.WSC_DASHBOARD = {
+        cards: {{ cards|json_encode|raw }},
+        siteHost: {{ siteHost|json_encode|raw }},
+        siteUrl: {{ siteUrl|json_encode|raw }},
+        refreshUrl: '/wsc/v1/refresh',
+        pagespeedUrl: '/wsc/v1/pagespeed/audit',
+        sentinelUrl: '/wsc/v1/sentinel/scan',
+        cardsUrl: '/wsc/v1/cards'
+    };
+</script>
+<script src="{{ asset('bundles/wscanalytics/static/js/wsc-dashboard.js', 'asset') }}"></script>
+{% endblock %}

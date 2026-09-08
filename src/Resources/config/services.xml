@@ -1,0 +1,67 @@
+<?xml version="1.0" ?>
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+        <!-- Database Manager -->
+        <service id="Wsc\Analytics\Service\WscDatabaseManager">
+            <argument>%kernel.project_dir%</argument>
+            <argument type="service" id="logger"/>
+        </service>
+
+        <!-- Bot Tracker -->
+        <service id="Wsc\Analytics\Service\WscBotTracker"/>
+
+        <!-- Core Service -->
+        <service id="Wsc\Analytics\Service\WscCoreService">
+            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
+            <argument type="service" id="Wsc\Analytics\Service\WscDatabaseManager"/>
+            <argument type="service" id="logger"/>
+            <argument type="service" id="http_client" on-invalid="null"/>
+        </service>
+
+        <!-- Subscribers -->
+        <service id="Wsc\Analytics\Subscriber\WscRequestSubscriber">
+            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
+            <argument type="service" id="Wsc\Analytics\Service\WscBotTracker"/>
+            <argument type="service" id="Wsc\Analytics\Service\WscCoreService"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
+        <service id="Wsc\Analytics\Subscriber\WscOrderSubscriber">
+            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
+            <argument type="service" id="Wsc\Analytics\Service\WscCoreService"/>
+            <argument type="service" id="logger"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
+        <!-- Scheduled Tasks -->
+        <service id="Wsc\Analytics\ScheduledTask\WscSyncTask">
+            <tag name="shopware.scheduled.task"/>
+        </service>
+
+        <service id="Wsc\Analytics\ScheduledTask\WscSyncTaskHandler">
+            <argument type="service" id="scheduled_task.repository"/>
+            <argument type="service" id="Wsc\Analytics\Service\WscCoreService"/>
+            <argument type="service" id="logger"/>
+            <tag name="messenger.message_handler"/>
+        </service>
+
+        <!-- Controllers -->
+        <service id="Wsc\Analytics\Storefront\Controller\WscApiController" public="true">
+            <argument type="service" id="Wsc\Analytics\Service\WscCoreService"/>
+            <argument type="service" id="logger"/>
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+
+        <service id="Wsc\Analytics\Storefront\Controller\WscDashboardController" public="true">
+            <argument type="service" id="Wsc\Analytics\Service\WscCoreService"/>
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+    </services>
+</container>

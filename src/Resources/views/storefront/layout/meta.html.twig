@@ -1,0 +1,12 @@
+{% sw_extends '@Storefront/storefront/layout/meta.html.twig' %}
+
+{% block layout_head_javascript_tracking %}
+    {{ parent() }}
+
+    {% if wscConfig is defined and wscConfig %}
+        <script>
+            window.WSC_CONFIG = {{ wscConfig|json_encode|raw }};
+        </script>
+        <script src="{{ asset('bundles/wscanalytics/static/js/wsc-tracker.js', 'asset') }}" defer></script>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/shopware/platform/master/src/Core/System/SystemConfig/Schema/config.xsd">
+
+    <card>
+        <title>General Tracking Configuration</title>
+        <title lang="de-DE">Allgemeine Tracking-Einstellungen</title>
+
+        <input-field type="bool">
+            <name>trackingActive</name>
+            <label>Enable WSC Analytics Tracking</label>
+            <label lang="de-DE">WSC Analytics Tracking aktivieren</label>
+            <defaultValue>true</defaultValue>
+        </input-field>
+
+        <input-field type="single-select">
+            <name>trackingMode</name>
+            <label>Tracking Mode</label>
+            <label lang="de-DE">Tracking-Modus</label>
+            <defaultValue>cookieless</defaultValue>
+            <options>
+                <option>
+                    <id>cookieless</id>
+                    <name>Cookieless Privacy-First (100% GDPR compliant without cookie banner)</name>
+                    <name lang="de-DE">Cookieless Privacy-First (100% DSGVO-konform ohne Cookie-Banner)</name>
+                </option>
+                <option>
+                    <id>consent</id>
+                    <name>Consent-Required (Integrated with Shopware Cookie Manager)</name>
+                    <name lang="de-DE">Einwilligung erforderlich (Integriert mit Shopware Cookie Manager)</name>
+                </option>
+            </options>
+        </input-field>
+
+        <input-field type="bool">
+            <name>excludeAdmins</name>
+            <label>Exclude Admin Users from Tracking</label>
+            <label lang="de-DE">Administratoren vom Tracking ausschließen</label>
+            <defaultValue>true</defaultValue>
+        </input-field>
+    </card>
+
+    <card>
+        <title>WSC Gateway &amp; Hybrid Encryption</title>
+        <title lang="de-DE">WSC Gateway &amp; Hybrid-Verschlüsselung</title>
+
+        <input-field type="bool">
+            <name>hybridEnabled</name>
+            <label>Enable Hybrid Sync to WSC Gateway</label>
+            <label lang="de-DE">Hybrid-Synchronisation zum WSC Gateway aktivieren</label>
+            <defaultValue>true</defaultValue>
+        </input-field>
+
+        <input-field type="text">
+            <name>gatewayUrl</name>
+            <label>Gateway API URL</label>
+            <defaultValue>https://api.worldseocouncil.com</defaultValue>
+        </input-field>
+
+        <input-field type="text">
+            <name>projectId</name>
+            <label>Project ID</label>
+            <helpText>Automatically generated during setup.</helpText>
+        </input-field>
+
+        <input-field type="text">
+            <name>localKey</name>
+            <label>Local AES-256 Key</label>
+            <helpText>Local secret encryption key.</helpText>
+        </input-field>
+    </card>
+
+    <card>
+        <title>AI &amp; Search Bot Shield Sensor</title>
+        <title lang="de-DE">AI &amp; Search Bot Shield Sensor</title>
+
+        <input-field type="single-select">
+            <name>botTrackingLevel</name>
+            <label>Bot Tracking Scope</label>
+            <label lang="de-DE">Bot-Tracking Umfang</label>
+            <defaultValue>search_ai</defaultValue>
+            <options>
+                <option><id>off</id><name>Disabled</name><name lang="de-DE">Deaktiviert</name></option>
+                <option><id>ai_only</id><name>AI / LLM Bots only (GPTBot, Claude, Perplexity)</name><name lang="de-DE">Nur KI-Bots</name></option>
+                <option><id>search_ai</id><name>Search Engines + AI Bots (Recommended)</name><name lang="de-DE">Suchmaschinen + KI-Bots (Empfohlen)</name></option>
+                <option><id>all</id><name>All known crawlers &amp; SEO tools</name><name lang="de-DE">Alle Crawler &amp; SEO-Tools</name></option>
+            </options>
+        </input-field>
+    </card>
+
+    <card>
+        <title>E-Commerce &amp; Automated Interactions</title>
+        <title lang="de-DE">E-Commerce &amp; Automatische Interaktionen</title>
+
+        <input-field type="bool">
+            <name>trackServerOrders</name>
+            <label>100% Ad-Blocker Immune Server-Side Order Tracking</label>
+            <label lang="de-DE">100% Ad-Blocker-immunes Server-Side Bestell-Tracking</label>
+            <defaultValue>true</defaultValue>
+        </input-field>
+
+        <input-field type="bool">
+            <name>autoDownloads</name>
+            <label>Auto-track file downloads</label>
+            <defaultValue>false</defaultValue>
+        </input-field>
+
+        <input-field type="bool">
+            <name>autoTimeOnPage</name>
+            <label>Auto-track active engaged time on page</label>
+            <defaultValue>false</defaultValue>
+        </input-field>
+    </card>
+
+    <card>
+        <title>Data Retention</title>
+        <title lang="de-DE">Datenaufbewahrung</title>
+
+        <input-field type="int">
+            <name>retentionDays</name>
+            <label>Local Queue Retention (Days)</label>
+            <defaultValue>30</defaultValue>
+        </input-field>
+    </card>
+</config>
