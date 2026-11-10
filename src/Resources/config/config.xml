@@ -54,7 +54,7 @@
         <input-field type="text">
             <name>gatewayUrl</name>
             <label>Gateway API URL</label>
-            <defaultValue>https://api.worldseocouncil.com</defaultValue>
+            <defaultValue>https://api.worldsearchcouncil.org</defaultValue>
         </input-field>
 
         <input-field type="text">

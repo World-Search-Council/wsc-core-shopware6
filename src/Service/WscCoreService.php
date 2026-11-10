@@ -16,7 +16,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 class WscCoreService
 {
     public const CONFIG_PREFIX = 'WscAnalytics.config.';
-    public const GATEWAY_DEFAULT = 'https://api.worldseocouncil.com';
+    public const GATEWAY_DEFAULT = 'https://api.worldsearchcouncil.org';
 
     private SystemConfigService $systemConfig;
     private WscDatabaseManager $dbManager;
