@@ -2,12 +2,13 @@
   "name": "wsc/wsc-analytics-shopware6",
   "description": "Privacy-first, cookieless hybrid analytics, AI bot shield, and server-side order tracking for Shopware 6.",
   "version": "2.2.0",
+  "homepage": "https://www.worldsearchcouncil.org",
   "type": "shopware-platform-plugin",
   "license": "GPL-2.0-or-later",
   "authors": [
     {
       "name": "World Search Council",
-      "homepage": "https://github.com/World-Search-Council/wsc-core-shopware6"
+      "homepage": "https://www.worldsearchcouncil.org"
     }
   ],
   "require": {
