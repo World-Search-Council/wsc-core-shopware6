@@ -1,6 +1,6 @@
 /**
- * WSC 7-Card Bento Dashboard & Diagnostic Interaction for Shopware 6
- * Part of the World Search Council Standard (v2.2.0)
+ * WSC v2.2.3 Bento Dashboard, Member Bridge, AI Coverage Inspector,
+ * Dynamic Industry Benchmarks & Opt-In IndexNow for Shopware 6
  */
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const cardsData = ctx.cards || {};
     let currentPeriod = '7d';
 
-    // Banner elements
     const banner = document.getElementById('wsc-diagnostic-banner');
     const bannerTitle = document.getElementById('wsc-banner-title');
     const bannerMsg = document.getElementById('wsc-banner-msg');
@@ -26,6 +25,14 @@ document.addEventListener('DOMContentLoaded', function() {
     function hideBanner() {
         if (!banner) return;
         banner.style.display = 'none';
+    }
+
+    function escapeHtml(str) {
+        return String(str === null || str === undefined ? '' : str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
     }
 
     // 1. Multi-Period Selector
@@ -82,142 +89,48 @@ document.addEventListener('DOMContentLoaded', function() {
             cards.forEach(c => c.classList.remove('active'));
             this.classList.add('active');
 
-            if (detailPanel && detailTitle && detailContent) {
-                detailPanel.style.display = 'block';
+            if (!detailPanel || !detailTitle || !detailContent) return;
+            detailPanel.style.display = 'block';
 
-                switch (cardType) {
-                    case 'traffic':
-                        detailTitle.textContent = '1. Shopware 6 Traffic & Attribution Channels (' + currentPeriod.toUpperCase() + ')';
-                        detailContent.innerHTML = `
-                            <p class="text-muted">Real human visitor acquisition breakdown for Shopware 6 storefront.</p>
-                            <table class="table table-sm table-striped">
-                                <thead><tr><th>Acquisition Source</th><th>Traffic Type</th><th>Conversion Readiness</th></tr></thead>
-                                <tbody>
-                                    <tr><td><strong>AI Citations (Perplexity / ChatGPT)</strong></td><td>LLM Referral</td><td><span class="badge bg-success">Very High Intent</span></td></tr>
-                                    <tr><td><strong>Organic Search (Google / Bing)</strong></td><td>Direct SERP</td><td><span class="badge bg-primary">Steady Catalog Inflow</span></td></tr>
-                                    <tr><td><strong>Social Media Campaigns</strong></td><td>Campaign Inflow</td><td><span class="badge bg-info">Discovery</span></td></tr>
-                                    <tr><td><strong>Direct Store Access</strong></td><td>Direct Typing / Bookmarks</td><td><span class="badge bg-secondary">Repeat Customers</span></td></tr>
-                                </tbody>
-                            </table>
-                        `;
-                        break;
-
-                    case 'insights':
-                        detailTitle.textContent = '2. Strategic E-Commerce Intelligence';
-                        detailContent.innerHTML = `
-                            <div class="alert alert-info">
-                                <h6 class="alert-heading fw-bold">Autonomous Conversion Optimization</h6>
-                                <p class="mb-0">The WSC Gateway continuously compares your Shopware 6 conversion velocity against industry benchmark clusters to surface actionable recommendations.</p>
-                            </div>
-                            <ul class="list-group list-group-flush small">
-                                <li class="list-group-item"><strong>Cart Step Friction:</strong> Consider reducing required customer form fields during checkout initiation.</li>
-                                <li class="list-group-item"><strong>AI Schema Readiness:</strong> Ensure JSON-LD Product &amp; Offer schema is updated for LLM shopping bots.</li>
-                            </ul>
-                        `;
-                        break;
-
-                    case 'bots':
-                        detailTitle.textContent = '3. Pre-Cache Bot Shield & Scraper Network';
-                        detailContent.innerHTML = `
-                            <p class="text-muted">Logged at Symfony Kernel request level before Shopware 6 Full-Page Cache execution.</p>
-                            <table class="table table-sm table-hover">
-                                <thead><tr><th>Bot Name</th><th>Category</th><th>Behavior</th><th>Status</th></tr></thead>
-                                <tbody>
-                                    <tr><td><code>GPTBot</code></td><td>AI Training Scraper</td><td>Bulk Catalog Harvesting</td><td><span class="badge bg-warning text-dark">Monitored</span></td></tr>
-                                    <tr><td><code>OAI-SearchBot</code></td><td>AI Live RAG Search</td><td>Real-Time Product Lookup</td><td><span class="badge bg-success">Allowed</span></td></tr>
-                                    <tr><td><code>PerplexityBot</code></td><td>AI Live RAG Search</td><td>Shopping Intent Citation</td><td><span class="badge bg-success">Allowed</span></td></tr>
-                                    <tr><td><code>Googlebot</code></td><td>Search Engine</td><td>SEO Storefront Crawl</td><td><span class="badge bg-primary">Allowed</span></td></tr>
-                                </tbody>
-                            </table>
-                        `;
-                        break;
-
-                    case 'engagement':
-                        detailTitle.textContent = '4. Reading & UX Milestone Reality';
-                        detailContent.innerHTML = `
-                            <p class="text-muted">Engaged time measured via active DOM interaction, tab visibility, and scroll depth.</p>
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <div class="p-3 border rounded">
-                                        <h6 class="fw-bold">UX Badges</h6>
-                                        <span class="badge bg-success me-1">Deep Reader Favorite</span>
-                                        <span class="badge bg-secondary">Low Bounce Cluster</span>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="p-3 border rounded">
-                                        <h6 class="fw-bold">Micro-Interactions</h6>
-                                        <p class="small text-muted mb-0">Average Time to First Interaction (TTFI): <strong>1.2s</strong> across category and PDP pages.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                        break;
-
-                    case 'outbound':
-                        detailTitle.textContent = '5. Outbound Link Navigation Intelligence';
-                        detailContent.innerHTML = `
-                            <p class="text-muted">Tracks outgoing link clicks across social networks, partner affiliate platforms, and external references.</p>
-                            <table class="table table-sm">
-                                <thead><tr><th>Category</th><th>Share</th><th>Top Domains</th></tr></thead>
-                                <tbody>
-                                    <tr><td>Social Networks</td><td>40%</td><td>instagram.com, linkedin.com</td></tr>
-                                    <tr><td>Job Portals &amp; Recruiting</td><td>35%</td><td>stepstone.de, indeed.com</td></tr>
-                                    <tr><td>Affiliate / Payment Gateways</td><td>15%</td><td>paypal.com, klarna.com</td></tr>
-                                </tbody>
-                            </table>
-                        `;
-                        break;
-
-                    case 'ecommerce':
-                        detailTitle.textContent = '6. Shopware 6 Checkout Funnel & Product Velocity';
-                        detailContent.innerHTML = `
-                            <div class="alert alert-success">
-                                <strong>100% Ad-Blocker Immune:</strong> Orders are captured server-side via Shopware 6 <code>CheckoutOrderPlacedEvent</code>.
-                            </div>
-                            <h6 class="fw-bold">Stage-by-Stage Funnel Transition</h6>
-                            <table class="table table-sm table-bordered text-center">
-                                <thead class="table-light"><tr><th>Stage 1: PDP Views</th><th>Stage 2: Add to Cart</th><th>Stage 3: Checkout Initiated</th><th>Stage 4: Order Completed</th></tr></thead>
-                                <tbody>
-                                    <tr>
-                                        <td>1,420</td>
-                                        <td>240 <span class="text-muted small">(16.9%)</span></td>
-                                        <td>110 <span class="text-muted small">(45.8%)</span></td>
-                                        <td class="table-success fw-bold">84 <span class="text-success small">(76.3%)</span></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        `;
-                        break;
-
-                    case 'sentinel':
-                        detailTitle.textContent = '7. Sentinel Domain Health & Mail Infrastructure';
-                        detailContent.innerHTML = `
-                            <p class="text-muted">Comprehensive technical audit of DNS redundancy, DNSSEC, Port-25-free mail security, and TLS certificate expiry.</p>
-                            <ul class="list-group list-group-flush small">
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <span>Nameserver Redundancy:</span>
-                                    <span class="badge bg-success">Configured (&gt;= 2 NS)</span>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <span>DNSSEC Cryptographic Validation:</span>
-                                    <span class="badge bg-success">Active</span>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <span>Email Security (SPF &amp; DMARC):</span>
-                                    <span class="badge bg-success">Strict Protection (No Port 25 probing)</span>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <span>Security Headers (HSTS, X-Frame, X-Content-Type):</span>
-                                    <span class="badge bg-success">Active &amp; Validated</span>
-                                </li>
-                            </ul>
-                        `;
-                        break;
-                }
-
-                detailPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            switch (cardType) {
+                case 'traffic':
+                    detailTitle.textContent = '1. Shopware 6 Traffic & Attribution Channels (' + currentPeriod.toUpperCase() + ')';
+                    detailContent.innerHTML = '<p class="text-muted">Cookieless visitor acquisition breakdown (Zero-PII daily salted session hashes).</p>' +
+                        '<table class="table table-sm table-striped">' +
+                        '<thead><tr><th>Acquisition Source</th><th>Traffic Type</th><th>Conversion Readiness</th></tr></thead>' +
+                        '<tbody>' +
+                        '<tr><td><strong>AI Citations (Perplexity / ChatGPT)</strong></td><td>LLM Referral</td><td><span class="badge bg-success">Very High Intent</span></td></tr>' +
+                        '<tr><td><strong>Organic Search (Google / Bing)</strong></td><td>Direct SERP</td><td><span class="badge bg-primary">Catalog Inflow</span></td></tr>' +
+                        '<tr><td><strong>Social Media Campaigns</strong></td><td>Campaign Inflow</td><td><span class="badge bg-info">Discovery</span></td></tr>' +
+                        '<tr><td><strong>Direct Store Access</strong></td><td>Direct / Bookmarks</td><td><span class="badge bg-secondary">Repeat Customers</span></td></tr>' +
+                        '</tbody></table>';
+                    break;
+                case 'insights':
+                    detailTitle.textContent = '2. Strategic E-Commerce Intelligence';
+                    detailContent.innerHTML = '<div class="alert alert-info mb-2"><strong>Autonomous Conversion &amp; GEO Analysis:</strong> Combines local SQLite funnel signals with anonymized WSC vertical benchmarks.</div>';
+                    break;
+                case 'bots':
+                    detailTitle.textContent = '3. Pre-Cache Bot Shield & Scraper Network';
+                    detailContent.innerHTML = '<p class="text-muted mb-0">Captured at Symfony <code>KernelEvents::REQUEST</code> (priority 250) with hashed session tokens and zero raw IPs.</p>';
+                    break;
+                case 'engagement':
+                    detailTitle.textContent = '4. Reading & UX Milestone Reality';
+                    detailContent.innerHTML = '<p class="text-muted mb-0">Engaged reading time measured via active DOM focus, tab visibility, and scroll milestones.</p>';
+                    break;
+                case 'outbound':
+                    detailTitle.textContent = '5. Outbound Link Navigation Intelligence';
+                    detailContent.innerHTML = '<p class="text-muted mb-0">Categorizes external departures across payment gateways, social profiles, and partner domains.</p>';
+                    break;
+                case 'ecommerce':
+                    detailTitle.textContent = '6. Shopware 6 Checkout Funnel & Server Orders';
+                    detailContent.innerHTML = '<div class="alert alert-success mb-0"><strong>100% Ad-Blocker Immune:</strong> Orders are captured server-side via <code>CheckoutOrderPlacedEvent</code>.</div>';
+                    break;
+                case 'sentinel':
+                    detailTitle.textContent = '7. Sentinel Domain Health & Mail Infrastructure';
+                    detailContent.innerHTML = '<p class="text-muted mb-0">Validates authoritative DNS redundancy, DNSSEC, Port-25-free SPF/DMARC records, and SSL expiry.</p>';
+                    break;
             }
+            detailPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         });
     });
 
@@ -228,12 +141,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 3. SpeedSentinel Trigger & Polling
+    // 3. SpeedSentinel & Sentinel Triggers
     const speedBtn = document.getElementById('wsc-trigger-pagespeed');
     if (speedBtn) {
         speedBtn.addEventListener('click', function() {
             speedBtn.disabled = true;
-            showBanner('SpeedSentinel Lab Audit Started', 'Headless Playwright runner is testing mobile Core Web Vitals and RAG readiness...');
+            showBanner('SpeedSentinel Lab Audit', 'Validating host SSRF rules and dispatching Playwright CWV audit...');
 
             fetch(ctx.pagespeedUrl || '/wsc/v1/pagespeed/audit', {
                 method: 'POST',
@@ -241,25 +154,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: JSON.stringify({ url: ctx.siteUrl || window.location.origin, strategy: 'mobile' })
             })
             .then(res => res.json())
-            .then(data => {
-                showBanner('SpeedSentinel Audit Enqueued', 'Audit is processing asynchronously (HTTP 202). Polling for report update...');
-                setTimeout(pollCardsUpdate, 6000);
+            .then(res => {
+                if (res.ok === false) {
+                    showBanner('SpeedSentinel Notice', res.message || res.error || 'Could not queue audit.');
+                } else {
+                    showBanner('SpeedSentinel Audit Enqueued', 'Processing asynchronously (HTTP 202). Polling for updated report...');
+                    setTimeout(pollCardsUpdate, 6000);
+                }
             })
-            .catch(err => {
-                showBanner('SpeedSentinel Notice', 'Request queued or deferred: ' + err.message);
-            })
-            .finally(() => {
-                setTimeout(() => { speedBtn.disabled = false; }, 5000);
-            });
+            .catch(err => showBanner('SpeedSentinel Notice', err.message))
+            .finally(() => setTimeout(() => { speedBtn.disabled = false; }, 4000));
         });
     }
 
-    // 4. Sentinel Scan Trigger & Polling
     const sentinelBtn = document.getElementById('wsc-trigger-sentinel');
     if (sentinelBtn) {
         sentinelBtn.addEventListener('click', function() {
             sentinelBtn.disabled = true;
-            showBanner('Sentinel Domain Scan Started', 'Validating authoritative DNS records, DNSSEC, Port-25-free SPF/DMARC, and SSL certificates...');
+            showBanner('Sentinel Domain Scan', 'Dispatching Port-25-free DNS, SPF/DMARC & TLS inspection...');
 
             fetch(ctx.sentinelUrl || '/wsc/v1/sentinel/scan', {
                 method: 'POST',
@@ -267,20 +179,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: JSON.stringify({ domain: ctx.siteHost || window.location.hostname })
             })
             .then(res => res.json())
-            .then(data => {
-                showBanner('Sentinel Scan Enqueued', 'Scan processing in Worker Sentinel. Polling for report update...');
-                setTimeout(pollCardsUpdate, 6000);
+            .then(res => {
+                if (res.ok === false) {
+                    showBanner('Sentinel Notice', res.message || res.error || 'Could not queue scan.');
+                } else {
+                    showBanner('Sentinel Scan Enqueued', 'Worker Sentinel is scanning domain infrastructure...');
+                    setTimeout(pollCardsUpdate, 6000);
+                }
             })
-            .catch(err => {
-                showBanner('Sentinel Notice', 'Request queued or deferred: ' + err.message);
-            })
-            .finally(() => {
-                setTimeout(() => { sentinelBtn.disabled = false; }, 5000);
-            });
+            .catch(err => showBanner('Sentinel Notice', err.message))
+            .finally(() => setTimeout(() => { sentinelBtn.disabled = false; }, 4000));
         });
     }
 
-    // 5. Polling helper to refresh cards
     function pollCardsUpdate() {
         fetch(ctx.cardsUrl || '/wsc/v1/cards')
             .then(res => res.json())
@@ -288,14 +199,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.ok && data.cards) {
                     Object.assign(cardsData, data.cards);
                     updateMetrics(currentPeriod);
-                    showBanner('Reports Synchronized', 'Latest diagnostic and telemetry reports updated.');
+                    if (data.benchmarks) renderBenchmarks(data.benchmarks);
+                    showBanner('Reports Synchronized', 'Latest diagnostic and benchmark telemetry updated.');
                     setTimeout(hideBanner, 4000);
                 }
             })
             .catch(() => {});
     }
 
-    // 6. Sync Now Button
+    // 4. Sync Now Button
     const syncBtn = document.getElementById('wsc-sync-now');
     if (syncBtn) {
         syncBtn.addEventListener('click', function() {
@@ -309,21 +221,254 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(res => res.json())
             .then(res => {
                 if (res.ok) {
-                    syncBtn.textContent = '✓ Synced (' + (res.synced_events || 0) + ')';
+                    syncBtn.textContent = res.hybrid ? ('✓ Synced (' + (res.synced_events || 0) + ')') : 'Local Mode (Opt-In Disabled)';
                     pollCardsUpdate();
                 } else {
-                    syncBtn.textContent = 'Sync Failed';
+                    syncBtn.textContent = 'Sync Deferred';
                 }
             })
-            .catch(() => {
-                syncBtn.textContent = 'Network Error';
-            })
+            .catch(() => { syncBtn.textContent = 'Network Error'; })
             .finally(() => {
                 setTimeout(() => {
                     syncBtn.disabled = false;
                     syncBtn.innerHTML = '<span>&#x21bb;</span> Sync Now';
-                }, 4000);
+                }, 3500);
             });
+        });
+    }
+
+    // 5. Industry Benchmarks Vertical Select & Auto-Classify NLP
+    function renderBenchmarks(bm) {
+        if (!bm || !bm.metrics) return;
+        const iconEl = document.getElementById('wsc-bm-icon');
+        const labelEl = document.getElementById('wsc-bm-label');
+        const nodesEl = document.getElementById('wsc-bm-nodes');
+        const gridEl = document.getElementById('wsc-bm-metrics-grid');
+        const selectEl = document.getElementById('wsc-bm-vertical-select');
+
+        if (iconEl) iconEl.textContent = bm.vertical_icon || '🏆';
+        if (labelEl) labelEl.textContent = bm.vertical_label || bm.vertical;
+        if (nodesEl) nodesEl.textContent = bm.nodes_in_benchmark || 50;
+        if (selectEl && bm.vertical) selectEl.value = bm.vertical;
+
+        if (gridEl) {
+            let html = '';
+            Object.keys(bm.metrics).forEach(k => {
+                const m = bm.metrics[k];
+                html += '<div class="col-lg-3 col-md-6">' +
+                    '<div class="p-3 border rounded bg-light h-100 d-flex flex-column justify-content-between">' +
+                    '<div><div class="small text-muted fw-semibold">' + escapeHtml(m.label) + '</div>' +
+                    '<div class="h4 fw-bold my-1">' + escapeHtml(m.site_val) + escapeHtml(m.unit) +
+                    ' <span class="small text-muted fw-normal">(Med: ' + escapeHtml(m.industry_median) + escapeHtml(m.unit) + ')</span></div></div>' +
+                    '<div><span class="wsc-bm-chip ' + escapeHtml(m.css_class) + '">' + escapeHtml(m.badge) + '</span></div>' +
+                    '</div></div>';
+            });
+            gridEl.innerHTML = html;
+        }
+    }
+
+    const bmSelect = document.getElementById('wsc-bm-vertical-select');
+    if (bmSelect) {
+        bmSelect.addEventListener('change', function() {
+            fetch(ctx.benchmarksClassifyUrl || '/wsc/v1/benchmarks/classify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ vertical: this.value })
+            })
+            .then(r => r.json())
+            .then(res => { if (res.benchmarks) renderBenchmarks(res.benchmarks); });
+        });
+    }
+
+    const bmClassifyBtn = document.getElementById('wsc-bm-classify-btn');
+    if (bmClassifyBtn) {
+        bmClassifyBtn.addEventListener('click', function() {
+            bmClassifyBtn.disabled = true;
+            bmClassifyBtn.textContent = 'Classifying...';
+            fetch(ctx.benchmarksClassifyUrl || '/wsc/v1/benchmarks/classify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({})
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (res.benchmarks) renderBenchmarks(res.benchmarks);
+                showBanner('Vertical Classified', 'Detected vertical: ' + (res.vertical || '') + ' (' + (res.method || 'nlp') + ').');
+                setTimeout(hideBanner, 4000);
+            })
+            .finally(() => {
+                bmClassifyBtn.disabled = false;
+                bmClassifyBtn.textContent = 'Auto-Classify NLP';
+            });
+        });
+    }
+
+    // 6. AI Coverage URL Inspector
+    const covBtn = document.getElementById('wsc-coverage-btn');
+    const covInput = document.getElementById('wsc-coverage-query');
+    const covTf = document.getElementById('wsc-coverage-timeframe');
+    const covResult = document.getElementById('wsc-coverage-result');
+
+    if (covBtn && covInput && covResult) {
+        covBtn.addEventListener('click', function() {
+            const q = covInput.value.trim();
+            if (!q) return;
+            covBtn.disabled = true;
+            covResult.innerHTML = '<span class="text-muted">Inspecting AI bot crawl telemetry...</span>';
+
+            fetch(ctx.coverageUrl || '/wsc/v1/ai-coverage', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: q, timeframe: covTf ? covTf.value : '30d' })
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (!res || res.ok === false) {
+                    covResult.innerHTML = '<span class="text-danger">' + escapeHtml((res && res.message) || 'Query failed.') + '</span>';
+                    return;
+                }
+                const um = res.url_metrics || {};
+                const dc = res.domain_coverage || {};
+                const rag = um.rag || {};
+                const tr = um.training || {};
+                const srcBadge = res.source === 'gateway' ? 'Cloud Gateway' : 'Local SQLite Sensor';
+
+                let html = '<div class="d-flex justify-content-between align-items-center mb-2">' +
+                    '<strong>' + escapeHtml((res.query && res.query.canonical_url) || q) + '</strong>' +
+                    '<span class="badge bg-secondary">' + escapeHtml(srcBadge) + '</span></div>';
+
+                if (res.notice) {
+                    html += '<div class="alert alert-warning py-1 px-2 mb-2">' + escapeHtml(res.notice) + '</div>';
+                }
+
+                html += '<div class="row g-2 text-center mb-2">' +
+                    '<div class="col-4"><div class="p-2 bg-white border rounded"><div class="text-muted">Live RAG Hits (30d)</div><strong class="h6 mb-0">' + Number(rag.hits_30d || 0) + '</strong></div></div>' +
+                    '<div class="col-4"><div class="p-2 bg-white border rounded"><div class="text-muted">Training Hits (30d)</div><strong class="h6 mb-0">' + Number(tr.hits_30d || 0) + '</strong></div></div>' +
+                    '<div class="col-4"><div class="p-2 bg-white border rounded"><div class="text-muted">Domain AI Coverage</div><strong class="h6 mb-0">' + escapeHtml(dc.ai_coverage_pct || 0) + '%</strong></div></div>' +
+                    '</div>';
+                html += '<div class="text-muted">Last RAG Visit: <strong>' + escapeHtml(rag.last_seen_human || 'Never') + '</strong> &bull; Last Training Crawl: <strong>' + escapeHtml(tr.last_seen_human || 'Never') + '</strong></div>';
+                covResult.innerHTML = html;
+            })
+            .catch(err => {
+                covResult.innerHTML = '<span class="text-danger">' + escapeHtml(err.message) + '</span>';
+            })
+            .finally(() => { covBtn.disabled = false; });
+        });
+    }
+
+    // 7. Manual IndexNow URL Submission
+    const inBtn = document.getElementById('wsc-indexnow-submit');
+    const inUrls = document.getElementById('wsc-indexnow-urls');
+    const inStatus = document.getElementById('wsc-indexnow-status');
+    const inTable = document.getElementById('wsc-indexnow-logs-table');
+
+    if (inBtn && inUrls) {
+        inBtn.addEventListener('click', function() {
+            const raw = inUrls.value.trim();
+            if (!raw) return;
+            inBtn.disabled = true;
+            if (inStatus) inStatus.textContent = 'Submitting...';
+
+            fetch(ctx.indexnowSubmitUrl || '/wsc/v1/indexnow/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ urls: raw })
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (inStatus) {
+                    inStatus.textContent = res.message || '';
+                    inStatus.className = 'small fw-semibold ' + (res.ok ? 'text-success' : 'text-danger');
+                }
+                if (res.logs && inTable) {
+                    const tbody = inTable.querySelector('tbody');
+                    if (tbody) {
+                        tbody.innerHTML = res.logs.map(l =>
+                            '<tr><td>' + escapeHtml(l.timestamp) + '</td>' +
+                            '<td><code>' + escapeHtml(l.source) + '</code></td>' +
+                            '<td><span class="badge ' + (l.success ? 'bg-success' : 'bg-danger') + '">' + escapeHtml(l.status_code) + '</span></td>' +
+                            '<td>' + escapeHtml(l.count) + '</td></tr>'
+                        ).join('');
+                    }
+                }
+            })
+            .finally(() => { inBtn.disabled = false; });
+        });
+    }
+
+    // 8. WSC Member Credential Verify, Disconnect & Co-Branding Save
+    const licVerifyBtn = document.getElementById('wsc-license-verify-btn');
+    const licDiscBtn = document.getElementById('wsc-license-disconnect-btn');
+    const licInput = document.getElementById('wsc-license-input');
+    const licMsg = document.getElementById('wsc-license-msg');
+    const licBadge = document.getElementById('wsc-license-badge');
+
+    if (licVerifyBtn && licInput) {
+        licVerifyBtn.addEventListener('click', function() {
+            const key = licInput.value.trim();
+            if (!key) return;
+            licVerifyBtn.disabled = true;
+            if (licMsg) licMsg.textContent = 'Verifying credential with www.worldsearchcouncil.org...';
+
+            fetch(ctx.licenseVerifyUrl || '/wsc/v1/license/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ license_key: key })
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (licMsg) {
+                    licMsg.textContent = res.message || '';
+                    licMsg.className = 'small mb-3 ' + (res.ok ? 'text-success fw-semibold' : 'text-danger');
+                }
+                if (res.membership && licBadge) {
+                    licBadge.textContent = String(res.membership.status || '').toUpperCase() + ' • ' + (res.membership.tier_label || '');
+                    licBadge.className = 'badge ' + (res.membership.is_active_licensed ? 'bg-success' : 'bg-secondary');
+                }
+                if (res.ok) {
+                    setTimeout(() => window.location.reload(), 900);
+                }
+            })
+            .finally(() => { licVerifyBtn.disabled = false; });
+        });
+    }
+
+    if (licDiscBtn) {
+        licDiscBtn.addEventListener('click', function() {
+            licDiscBtn.disabled = true;
+            fetch(ctx.licenseDisconnectUrl || '/wsc/v1/license/disconnect', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(() => window.location.reload());
+        });
+    }
+
+    const cbSaveBtn = document.getElementById('wsc-cb-save-btn');
+    const cbStatus = document.getElementById('wsc-cb-status');
+    if (cbSaveBtn) {
+        cbSaveBtn.addEventListener('click', function() {
+            cbSaveBtn.disabled = true;
+            const payload = {
+                enabled: !!(document.getElementById('wsc-cb-enabled') && document.getElementById('wsc-cb-enabled').checked),
+                agency_name: (document.getElementById('wsc-cb-name') || {}).value || '',
+                support_email: (document.getElementById('wsc-cb-email') || {}).value || '',
+                logo_url: (document.getElementById('wsc-cb-logo') || {}).value || '',
+                support_url: (document.getElementById('wsc-cb-url') || {}).value || '',
+                custom_footer: (document.getElementById('wsc-cb-footer') || {}).value || ''
+            };
+
+            fetch(ctx.coBrandingSaveUrl || '/wsc/v1/cobranding/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (cbStatus) cbStatus.textContent = res.message || 'Saved.';
+                setTimeout(() => window.location.reload(), 700);
+            })
+            .finally(() => { cbSaveBtn.disabled = false; });
         });
     }
 });

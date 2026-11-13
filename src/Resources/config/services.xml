@@ -19,6 +19,7 @@
             <argument type="service" id="Wsc\Analytics\Service\WscDatabaseManager"/>
             <argument type="service" id="logger"/>
             <argument type="service" id="http_client" on-invalid="null"/>
+            <argument type="service" id="Doctrine\DBAL\Connection" on-invalid="null"/>
         </service>
 
         <!-- Subscribers -->
@@ -30,6 +31,13 @@
         </service>
 
         <service id="Wsc\Analytics\Subscriber\WscOrderSubscriber">
+            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
+            <argument type="service" id="Wsc\Analytics\Service\WscCoreService"/>
+            <argument type="service" id="logger"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
+        <service id="Wsc\Analytics\Subscriber\WscProductSubscriber">
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
             <argument type="service" id="Wsc\Analytics\Service\WscCoreService"/>
             <argument type="service" id="logger"/>

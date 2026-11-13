@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Wsc\Analytics\Subscriber;
 
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
@@ -13,7 +14,8 @@ use Wsc\Analytics\Service\WscBotTracker;
 use Wsc\Analytics\Service\WscCoreService;
 
 /**
- * Early Edge AI crawler sensor & Storefront data injector for Shopware 6.
+ * Early Edge AI crawler sensor, `/llms.txt` manifest server, virtual `/{key}.txt` IndexNow verifier,
+ * and Storefront configuration injector for Shopware 6 (v2.2.3).
  */
 class WscRequestSubscriber implements EventSubscriberInterface
 {
@@ -40,7 +42,10 @@ class WscRequestSubscriber implements EventSubscriberInterface
     }
 
     /**
-     * Edge bot tracking hook executed before controllers.
+     * Early Kernel request hook:
+     * 1. Serves dynamic `/llms.txt` when enabled
+     * 2. Serves virtual `/{indexnowKey}.txt` key file
+     * 3. Captures AI & Search bot hits before Full-Page Cache (Zero-PII)
      */
     public function onKernelRequest(RequestEvent $event): void
     {
@@ -48,6 +53,33 @@ class WscRequestSubscriber implements EventSubscriberInterface
             return;
         }
 
+        $request = $event->getRequest();
+        $path = trim($request->getPathInfo(), '/');
+
+        // 1. Serve dynamic /llms.txt AI Manifest
+        if ($path === 'llms.txt' && $request->isMethod('GET') && $this->coreService->isLlmsTxtEnabled()) {
+            $body = $this->coreService->generateLlmsTxt($request->getSchemeAndHttpHost());
+            $event->setResponse(new Response($body, Response::HTTP_OK, [
+                'Content-Type'  => 'text/plain; charset=utf-8',
+                'X-Robots-Tag'  => 'noindex, follow',
+                'Cache-Control' => 'public, max-age=3600',
+            ]));
+            return;
+        }
+
+        // 2. Serve virtual IndexNow key verification endpoint /{indexnowKey}.txt
+        if ($request->isMethod('GET') && preg_match('/^([a-f0-9]{32})\.txt$/i', $path, $matches)) {
+            $configuredKey = $this->coreService->getIndexNowKey();
+            if (hash_equals(strtolower($configuredKey), strtolower($matches[1]))) {
+                $event->setResponse(new Response($configuredKey, Response::HTTP_OK, [
+                    'Content-Type' => 'text/plain; charset=utf-8',
+                    'X-Robots-Tag' => 'noindex, follow',
+                ]));
+                return;
+            }
+        }
+
+        // 3. Edge Bot Sensor (Zero-PII)
         if (!$this->systemConfig->getBool(WscCoreService::CONFIG_PREFIX . 'trackingActive')) {
             return;
         }
@@ -57,9 +89,8 @@ class WscRequestSubscriber implements EventSubscriberInterface
             return;
         }
 
-        $request = $event->getRequest();
         $ua = (string) $request->headers->get('user-agent', '');
-        if (empty($ua)) {
+        if ($ua === '') {
             return;
         }
 
@@ -72,12 +103,13 @@ class WscRequestSubscriber implements EventSubscriberInterface
             return;
         }
 
-        $this->coreService->trackEvent('bot_hit', $request->getPathInfo(), (string)$request->headers->get('referer', ''), [
-            'bot_name'     => $bot['name'],
-            'bot_category' => $bot['category'],
-            'bot_type'     => $bot['type'],
-            'ip'           => $request->getClientIp(),
-        ]);
+        $this->coreService->recordBotHit(
+            $bot,
+            $request->getPathInfo(),
+            (string) $request->headers->get('referer', ''),
+            (string) ($request->getClientIp() ?: ''),
+            $ua
+        );
     }
 
     /**
@@ -92,11 +124,11 @@ class WscRequestSubscriber implements EventSubscriberInterface
         }
 
         $config = [
-            'endpoint' => '/wsc/v1/track',
-            'mode' => $this->systemConfig->getString(WscCoreService::CONFIG_PREFIX . 'trackingMode', $salesChannelId) ?: 'cookieless',
+            'endpoint'   => '/wsc/v1/track',
+            'mode'       => $this->systemConfig->getString(WscCoreService::CONFIG_PREFIX . 'trackingMode', $salesChannelId) ?: 'cookieless',
             'consentKey' => 'wsc_consent',
-            'auto' => [
-                'downloads' => $this->systemConfig->getBool(WscCoreService::CONFIG_PREFIX . 'autoDownloads', $salesChannelId),
+            'auto'       => [
+                'downloads'  => $this->systemConfig->getBool(WscCoreService::CONFIG_PREFIX . 'autoDownloads', $salesChannelId),
                 'timeOnPage' => $this->systemConfig->getBool(WscCoreService::CONFIG_PREFIX . 'autoTimeOnPage', $salesChannelId),
             ],
         ];

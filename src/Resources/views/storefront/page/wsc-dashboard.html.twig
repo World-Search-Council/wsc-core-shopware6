@@ -7,15 +7,46 @@
 
 {% block base_content %}
 <div class="wsc-dashboard-wrapper container mt-4 mb-5">
-    <!-- Header with 5-Hub Bar & Period Switcher -->
+
+    {# Agency Co-Branding Banner (Active when configured) #}
+    {% if membership.co_branding.enabled and membership.co_branding.agency_name %}
+    <div class="wsc-cobranding-banner d-flex flex-wrap justify-content-between align-items-center mb-3 p-3 rounded shadow-sm">
+        <div class="d-flex align-items-center gap-3">
+            {% if membership.co_branding.logo_url %}
+                <img src="{{ membership.co_branding.logo_url }}" alt="{{ membership.co_branding.agency_name }}" class="wsc-agency-logo">
+            {% endif %}
+            <div>
+                <span class="badge bg-dark text-white mb-1">Managed Search &amp; AI Governance Partner</span>
+                <div class="fw-bold">{{ membership.co_branding.agency_name }}</div>
+            </div>
+        </div>
+        <div class="d-flex flex-wrap gap-2 small">
+            {% if membership.co_branding.support_url %}
+                <a href="{{ membership.co_branding.support_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-dark">Partner Desk &#8599;</a>
+            {% endif %}
+            {% if membership.co_branding.support_email %}
+                <a href="mailto:{{ membership.co_branding.support_email }}" class="btn btn-sm btn-outline-secondary">{{ membership.co_branding.support_email }}</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Header with Multi-Period Switcher & Cloud Controls -->
     <div class="wsc-dashboard-header d-flex flex-wrap justify-content-between align-items-center mb-4 p-3 bg-white border rounded shadow-sm gap-3">
         <div>
-            <div class="d-flex align-items-center gap-2 mb-1">
-                <span class="badge bg-primary text-white">WSC v2.2</span>
+            <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                <span class="badge bg-primary text-white">WSC v{{ version|default('2.2.3') }}</span>
                 <h2 class="h4 mb-0 fw-bold">Shopware 6 Command Center</h2>
+                {% if membership.is_active_licensed %}
+                    <span class="badge bg-success text-white">&#x2713; {{ membership.tier_label }}{% if membership.is_demo %} (Demo){% endif %}</span>
+                {% else %}
+                    <span class="badge bg-light text-dark border">Open-Source Community Edition</span>
+                {% endif %}
             </div>
             <p class="text-muted mb-0 small">
-                Project ID: <code>{{ projectId }}</code> &bull; Host: <strong>{{ siteHost }}</strong> &bull; Platform: <strong>Shopware 6 Enterprise</strong>
+                Project ID: <code id="wsc-project-id-label">{{ projectId }}</code> &bull;
+                Host: <strong>{{ siteHost }}</strong> &bull;
+                Cloud Sync: <strong>{{ hybridEnabled ? 'Opted-In (Encrypted)' : 'Local-Only (Zero External Traffic)' }}</strong>
             </p>
         </div>
         <div class="d-flex flex-wrap align-items-center gap-2">
@@ -55,8 +86,8 @@
 
     {% if not hasData %}
         <div class="alert alert-info shadow-sm mb-4">
-            <h4 class="alert-heading">Waiting for initial Gateway Push</h4>
-            <p class="mb-0">Shopware 6 telemetry and orders are queued locally in <code>var/wsc_analytics/queue_temp.sqlite</code>. Reports are calculated by ClickHouse in the WSC Gateway and automatically delivered via signed HMAC webhook.</p>
+            <h4 class="alert-heading h6 fw-bold mb-1">Local Zero-PII SQLite WAL Storage Active</h4>
+            <p class="mb-0 small">Shopware 6 telemetry, bot hits, and server-side orders are buffered locally in <code>var/wsc_analytics/</code> without raw client IPs. {% if not hybridEnabled %}Enable <strong>Hybrid Cloud Sync</strong> in plugin settings whenever you wish to pair with <code>api.worldsearchcouncil.org</code>.{% endif %}</p>
         </div>
     {% endif %}
 
@@ -143,12 +174,12 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h3 class="h6 card-title mb-0 fw-bold">3. Bot Shield &amp; AI Crawlers</h3>
-                        <span class="badge bg-danger-subtle text-danger border">Pre-Cache Sensor</span>
+                        <span class="badge bg-danger-subtle text-danger border">{{ benchmarks.metrics.human_ratio_pct.badge|default('Pre-Cache Sensor') }}</span>
                     </div>
 
                     <div class="d-flex justify-content-around align-items-center text-center bg-light p-2 rounded mb-3">
                         <div>
-                            <span class="h5 mb-0 fw-bold text-success" id="val-human-pct">{{ cards.card3_bots.data_7d.human_pct|default('100') }}%</span>
+                            <span class="h5 mb-0 fw-bold text-success" id="val-human-pct">{{ cards.card3_bots.data_7d.human_pct|default(benchmarks.metrics.human_ratio_pct.site_val|default('100')) }}%</span>
                             <span class="d-block small text-muted">Humans</span>
                         </div>
                         <div class="text-muted fw-bold">vs</div>
@@ -185,7 +216,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h3 class="h6 card-title mb-0 fw-bold">4. Engagement &amp; Reading Reality</h3>
-                        <span class="badge bg-info-subtle text-info border">DOM Sensor</span>
+                        <span class="badge bg-info-subtle text-info border">{{ benchmarks.metrics.engaged_time.badge|default('DOM Sensor') }}</span>
                     </div>
 
                     <div class="d-flex justify-content-between text-center mb-3 bg-light p-2 rounded">
@@ -270,7 +301,7 @@
             </div>
         </div>
 
-        <!-- Card 6: E-Commerce Funnel Reality (Shopware 6 Specialty) -->
+        <!-- Card 6: E-Commerce Funnel Reality -->
         <div class="col-lg-4 col-md-6">
             <div class="card h-100 shadow-sm wsc-card-interactive border-start border-4 border-success" id="wsc-card-6" data-card="ecommerce">
                 <div class="card-body">
@@ -282,25 +313,25 @@
                     <div class="wsc-funnel-stages mb-3">
                         <div class="d-flex justify-content-between align-items-center py-1 border-bottom small">
                             <span>1. Product Views</span>
-                            <strong>{{ cards.card_ecommerce.data_7d.product_views|default('1,420') }}</strong>
+                            <strong>{{ cards.card_ecommerce.data_7d.product_views|default('0') }}</strong>
                         </div>
                         <div class="d-flex justify-content-between align-items-center py-1 border-bottom small">
                             <span>2. Add to Cart</span>
-                            <strong>{{ cards.card_ecommerce.data_7d.add_to_cart|default('240') }}</strong>
+                            <strong>{{ cards.card_ecommerce.data_7d.add_to_cart|default('0') }}</strong>
                         </div>
                         <div class="d-flex justify-content-between align-items-center py-1 border-bottom small">
                             <span>3. Initiate Checkout</span>
-                            <strong>{{ cards.card_ecommerce.data_7d.checkout_started|default('110') }}</strong>
+                            <strong>{{ cards.card_ecommerce.data_7d.checkout_started|default('0') }}</strong>
                         </div>
                         <div class="d-flex justify-content-between align-items-center py-1 small bg-success-subtle px-2 rounded mt-1">
                             <span class="fw-bold text-success">4. Server Purchase</span>
-                            <strong class="text-success">{{ cards.card_ecommerce.data_7d.purchases|default('84') }}</strong>
+                            <strong class="text-success">{{ cards.card_ecommerce.data_7d.purchases|default('0') }}</strong>
                         </div>
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center small text-muted">
                         <span>Cart Drop-off Leak:</span>
-                        <strong class="text-danger">{{ cards.card_ecommerce.data_7d.abandonment_rate|default('54.2%') }}</strong>
+                        <strong class="text-danger">{{ cards.card_ecommerce.data_7d.abandonment_rate|default('0%') }}</strong>
                     </div>
                 </div>
                 <div class="card-footer bg-transparent border-0 text-end pt-0">
@@ -342,13 +373,13 @@
                         <div class="col-md-3 col-6">
                             <div class="p-2 border rounded bg-light">
                                 <span class="d-block text-muted">Email Security</span>
-                                <strong class="text-success">{{ cards.domain_health.mail.summary|default('SPF &amp; DMARC Active') }}</strong>
+                                <strong class="text-success">{{ cards.domain_health.mail.summary|default('SPF & DMARC Active') }}</strong>
                             </div>
                         </div>
                         <div class="col-md-3 col-6">
                             <div class="p-2 border rounded bg-light">
                                 <span class="d-block text-muted">SSL Certificate</span>
-                                <strong class="text-success">{{ cards.domain_health.ssl.days_remaining|default('33 Days Remaining') }}</strong>
+                                <strong class="text-success">{{ cards.domain_health.ssl.days_remaining|default('Valid TLS') }}</strong>
                             </div>
                         </div>
                     </div>
@@ -365,17 +396,267 @@
         </div>
         <div class="card-body" id="wsc-detail-content"></div>
     </div>
+
+    <!-- Industry Benchmark Intelligence Matrix (Paket CMS-3.2) -->
+    <div class="card shadow-sm mb-4 border-start border-4 border-purple" id="wsc-benchmarks-card">
+        <div class="card-body">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                <div>
+                    <span class="text-uppercase small fw-bold text-muted" id="wsc-bm-source-lbl">
+                        {{ benchmarks.source == 'gateway_live' or benchmarks.source == 'gateway_cached' ? 'Live WSC Sensor Network Benchmark' : 'Anonymized Industry Baseline Comparison' }}
+                    </span>
+                    <h3 class="h5 mb-0 fw-bold mt-1">
+                        <span id="wsc-bm-icon">{{ benchmarks.vertical_icon }}</span>
+                        <span id="wsc-bm-label">{{ benchmarks.vertical_label }}</span>
+                    </h3>
+                </div>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <span class="badge bg-light text-dark border">🔒 k-Anonymity Guard: N=<span id="wsc-bm-nodes">{{ benchmarks.nodes_in_benchmark }}</span> Nodes</span>
+                    <select class="form-select form-select-sm" id="wsc-bm-vertical-select" style="max-width: 250px;">
+                        {% for vPath, vTitle in benchmarks.taxonomy_options %}
+                            <option value="{{ vPath }}" {% if vPath == benchmarks.vertical %}selected{% endif %}>{{ vTitle }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="wsc-bm-classify-btn">Auto-Classify NLP</button>
+                </div>
+            </div>
+
+            <div class="row g-3" id="wsc-bm-metrics-grid">
+                {% for key, m in benchmarks.metrics %}
+                <div class="col-lg-3 col-md-6">
+                    <div class="p-3 border rounded bg-light h-100 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="small text-muted fw-semibold">{{ m.label }}</div>
+                            <div class="h4 fw-bold my-1">
+                                {{ m.site_val }}{{ m.unit }}
+                                <span class="small text-muted fw-normal">(Med: {{ m.industry_median }}{{ m.unit }})</span>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="wsc-bm-chip {{ m.css_class }}">{{ m.badge }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Coverage Inspector & IndexNow / llms.txt Row (Paket CMS-3.1, 3.3, 3.4) -->
+    <div class="row g-4 mb-4">
+        <!-- Interactive AI Coverage URL Inspector -->
+        <div class="col-lg-6">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h3 class="h6 mb-0 fw-bold">🤖 AI Coverage &amp; RAG Citation Inspector</h3>
+                        <span class="badge bg-purple text-white">Local SQLite + Gateway</span>
+                    </div>
+                    <p class="small text-muted mb-3">Inspect whether ChatGPT Search, Perplexity, Claude, or training crawlers have indexed a storefront URL.</p>
+
+                    <div class="input-group input-group-sm mb-3">
+                        <input type="text" class="form-control" id="wsc-coverage-query" placeholder="/ or {{ siteUrl }}/product" value="/">
+                        <select class="form-select" id="wsc-coverage-timeframe" style="max-width: 90px;">
+                            <option value="7d">7d</option>
+                            <option value="30d" selected>30d</option>
+                        </select>
+                        <button type="button" class="btn btn-primary" id="wsc-coverage-btn">Inspect URL</button>
+                    </div>
+
+                    <div id="wsc-coverage-result" class="small border rounded p-3 bg-light">
+                        <span class="text-muted">Enter any storefront path or URL above and click <strong>Inspect URL</strong> to view AI crawler activity.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- /llms.txt Manifest & Opt-In IndexNow Instant Push -->
+        <div class="col-lg-6">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
+                        <h3 class="h6 mb-0 fw-bold">⚡ /llms.txt AI Manifest &amp; Opt-In IndexNow</h3>
+                        <div class="d-flex gap-1">
+                            <a href="/llms.txt" target="_blank" rel="noopener" class="badge bg-success text-white text-decoration-none">
+                                /llms.txt: {{ llmsTxtEnabled ? 'Active ↗' : 'Disabled' }}
+                            </a>
+                            <a href="/{{ indexnowKey }}.txt" target="_blank" rel="noopener" class="badge {{ indexnowEnabled ? 'bg-primary' : 'bg-secondary' }} text-white text-decoration-none">
+                                IndexNow Auto-Push: {{ indexnowEnabled ? 'Opted-In' : 'Opt-Out (Manual Ready)' }} ↗
+                            </a>
+                        </div>
+                    </div>
+
+                    <p class="small text-muted mb-2">
+                        Key File: <code>{{ siteUrl }}/{{ indexnowKey }}.txt</code> &bull; Instant ping to <code>api.indexnow.org</code> (10s timeout).
+                    </p>
+
+                    <textarea class="form-control form-control-sm mb-2" id="wsc-indexnow-urls" rows="2" placeholder="{{ siteUrl }}/&#10;{{ siteUrl }}/special-offers"></textarea>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <button type="button" class="btn btn-sm btn-dark" id="wsc-indexnow-submit">⚡ Submit URLs to IndexNow</button>
+                        <span class="small fw-semibold" id="wsc-indexnow-status"></span>
+                    </div>
+
+                    <div class="wsc-indexnow-logs-wrap" style="max-height: 140px; overflow-y: auto;">
+                        <table class="table table-sm table-bordered small mb-0" id="wsc-indexnow-logs-table">
+                            <thead class="table-light">
+                                <tr><th>UTC Time</th><th>Source</th><th>HTTP</th><th>URLs</th></tr>
+                            </thead>
+                            <tbody>
+                                {% if indexnowLogs|length > 0 %}
+                                    {% for log in indexnowLogs %}
+                                    <tr>
+                                        <td>{{ log.timestamp }}</td>
+                                        <td><code>{{ log.source }}</code></td>
+                                        <td><span class="badge {{ log.success ? 'bg-success' : 'bg-danger' }}">{{ log.status_code }}</span></td>
+                                        <td>{{ log.count }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr><td colspan="4" class="text-muted text-center">No IndexNow submissions recorded yet.</td></tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- WSC Membership Credential Bridge, Co-Branding & Ecosystem (Paket CMS-2) -->
+    <div class="card shadow-sm mb-4 border-start border-4 border-success" id="wsc-membership-panel">
+        <div class="card-body">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                <div>
+                    <h3 class="h5 mb-1 fw-bold">🏛️ WSC Member Credential Bridge &amp; Partner Ecosystem</h3>
+                    <p class="small text-muted mb-0">
+                        100% of local Shopware 6 analytics &amp; SEO diagnostics are permanently unlocked. Pair an optional WSC Member or Agency credential for verified status, multi-domain console access, and 100% ad-free operation.
+                    </p>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    {% if membership.verify_url %}
+                        <a href="{{ membership.verify_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-success" id="wsc-verify-cred-link">
+                            Verify Credential &#8599;
+                        </a>
+                    {% endif %}
+                    <a href="{{ membership.member_console_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-dark">
+                        Open Member Console &#8599;
+                    </a>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Credential Pairing Form -->
+                <div class="col-lg-6">
+                    <div class="p-3 border rounded bg-light h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <strong class="small text-uppercase text-muted">Active Credential Status</strong>
+                            <span class="badge {{ membership.is_active_licensed ? 'bg-success' : 'bg-secondary' }}" id="wsc-license-badge">
+                                {{ membership.status|upper }} &bull; {{ membership.tier_label }}
+                            </span>
+                        </div>
+
+                        <div class="input-group input-group-sm mb-2">
+                            <input type="text" class="form-control font-monospace" id="wsc-license-input" placeholder="WSC-MEMBER-XXXX-XXXX or WSC-MEMBER-DEMO" value="{{ membership.key }}">
+                            <button type="button" class="btn btn-success" id="wsc-license-verify-btn">Verify Key</button>
+                            {% if membership.key %}
+                                <button type="button" class="btn btn-outline-danger" id="wsc-license-disconnect-btn">Disconnect</button>
+                            {% endif %}
+                        </div>
+                        <div class="small text-muted mb-3" id="wsc-license-msg">
+                            {% if membership.holder %}Holder: <strong>{{ membership.holder }}</strong>{% else %}Sandbox keys supported offline: <code>WSC-MEMBER-DEMO</code>, <code>WSC-AGENCY-DEMO</code>, <code>WSC-PARTNER-DEMO</code>.{% endif %}
+                        </div>
+
+                        <!-- Agency Co-Branding Settings -->
+                        <details {% if membership.is_agency_tier %}open{% endif %}>
+                            <summary class="small fw-bold cursor-pointer mb-2">Agency Co-Branding Configuration</summary>
+                            <div class="row g-2 small mt-1">
+                                <div class="col-12">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="wsc-cb-enabled" {% if membership.co_branding.enabled %}checked{% endif %}>
+                                        <label class="form-check-label" for="wsc-cb-enabled">Enable Agency Co-Branding Header &amp; Footer</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control form-control-sm" id="wsc-cb-name" placeholder="Agency Name" value="{{ membership.co_branding.agency_name }}">
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="email" class="form-control form-control-sm" id="wsc-cb-email" placeholder="support@agency.example" value="{{ membership.co_branding.support_email }}">
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="url" class="form-control form-control-sm" id="wsc-cb-logo" placeholder="https://.../logo.png" value="{{ membership.co_branding.logo_url }}">
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="url" class="form-control form-control-sm" id="wsc-cb-url" placeholder="https://agency.example/support" value="{{ membership.co_branding.support_url }}">
+                                </div>
+                                <div class="col-12">
+                                    <input type="text" class="form-control form-control-sm" id="wsc-cb-footer" placeholder="Custom client governance footer note" value="{{ membership.co_branding.custom_footer }}">
+                                </div>
+                                <div class="col-12 d-flex justify-content-between align-items-center">
+                                    <button type="button" class="btn btn-sm btn-outline-dark" id="wsc-cb-save-btn">Save Co-Branding</button>
+                                    <span id="wsc-cb-status" class="small text-muted"></span>
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+
+                <!-- Accredited WSC Partner Directory (Zero Sponsor Ads for Licensed Members) -->
+                <div class="col-lg-6">
+                    <div class="p-3 border rounded h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <strong class="small text-uppercase text-muted">Accredited WSC Partner Directory</strong>
+                            <a href="https://www.worldsearchcouncil.org/directory" target="_blank" rel="noopener noreferrer" class="small text-decoration-none">Full Directory &#8599;</a>
+                        </div>
+                        <div class="list-group list-group-flush small">
+                            {% for p in partners %}
+                            <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ p.name }}</strong>
+                                    <span class="badge bg-light text-dark border ms-1">{{ p.badge }}</span>
+                                    <div class="text-muted">{{ p.specialty }} &bull; {{ p.location }} (&starf; {{ p.rating }})</div>
+                                </div>
+                                <a href="{{ p.profile_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary">Profile &#8599;</a>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        {% if not membership.is_active_licensed %}
+                        <div class="mt-2 pt-2 border-top small text-muted d-flex justify-content-between align-items-center">
+                            <span>Want verified WTP attestation &amp; a 100% ad-free member badge?</span>
+                            <a href="https://www.worldsearchcouncil.org/join" target="_blank" rel="noopener noreferrer" class="fw-bold text-decoration-none">Join WSC &#8599;</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if membership.co_branding.enabled and membership.co_branding.custom_footer %}
+        <div class="text-center small text-muted mt-3">
+            {{ membership.co_branding.custom_footer }}
+        </div>
+    {% endif %}
 </div>
 
 <script>
     window.WSC_DASHBOARD = {
         cards: {{ cards|json_encode|raw }},
+        benchmarks: {{ benchmarks|json_encode|raw }},
         siteHost: {{ siteHost|json_encode|raw }},
         siteUrl: {{ siteUrl|json_encode|raw }},
         refreshUrl: '/wsc/v1/refresh',
+        registerUrl: '/wsc/v1/register',
         pagespeedUrl: '/wsc/v1/pagespeed/audit',
         sentinelUrl: '/wsc/v1/sentinel/scan',
-        cardsUrl: '/wsc/v1/cards'
+        cardsUrl: '/wsc/v1/cards',
+        coverageUrl: '/wsc/v1/ai-coverage',
+        benchmarksQueryUrl: '/wsc/v1/benchmarks/query',
+        benchmarksClassifyUrl: '/wsc/v1/benchmarks/classify',
+        licenseVerifyUrl: '/wsc/v1/license/verify',
+        licenseDisconnectUrl: '/wsc/v1/license/disconnect',
+        coBrandingSaveUrl: '/wsc/v1/cobranding/save',
+        indexnowSubmitUrl: '/wsc/v1/indexnow/submit'
     };
 </script>
 <script src="{{ asset('bundles/wscanalytics/static/js/wsc-dashboard.js', 'asset') }}"></script>

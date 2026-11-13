@@ -1,7 +1,7 @@
 {
   "name": "wsc/wsc-analytics-shopware6",
-  "description": "Privacy-first, cookieless hybrid analytics, AI bot shield, and server-side order tracking for Shopware 6.",
-  "version": "2.2.0",
+  "description": "Privacy-first, cookieless hybrid analytics, AI bot shield, WSC Member Bridge, Industry Benchmarks, /llms.txt, IndexNow, and server-side order tracking for Shopware 6.",
+  "version": "2.2.3",
   "homepage": "https://www.worldsearchcouncil.org",
   "type": "shopware-platform-plugin",
   "license": "GPL-2.0-or-later",
@@ -19,12 +19,12 @@
   "extra": {
     "shopware-plugin-class": "Wsc\\Analytics\\WscAnalytics",
     "label": {
-      "de-DE": "WSC Analytics & AI Bot Shield für Shopware 6",
-      "en-GB": "WSC Analytics & AI Bot Shield for Shopware 6"
+      "de-DE": "WSC Search & Health Analytics für Shopware 6",
+      "en-GB": "WSC Search & Health Analytics for Shopware 6"
     },
     "description": {
-      "de-DE": "DSGVO-konformes cookieloses Tracking, AI-Crawler-Erkennung und 100% Ad-Blocker-immunes Server-Side E-Commerce-Tracking.",
-      "en-GB": "GDPR-compliant cookieless tracking, AI crawler shield, and 100% ad-blocker immune server-side e-commerce order tracking."
+      "de-DE": "DSGVO-konformes cookieloses Tracking, AI-Crawler-Sensor, Live-Benchmarks, /llms.txt, Opt-In IndexNow und Server-Side E-Commerce-Tracking.",
+      "en-GB": "GDPR-compliant cookieless tracking, AI crawler shield, live industry benchmarks, /llms.txt, opt-in IndexNow, and 100% ad-blocker immune server-side order tracking."
     }
   },
   "autoload": {

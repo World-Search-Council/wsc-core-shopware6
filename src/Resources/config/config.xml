@@ -41,14 +41,15 @@
     </card>
 
     <card>
-        <title>WSC Gateway &amp; Hybrid Encryption</title>
-        <title lang="de-DE">WSC Gateway &amp; Hybrid-Verschlüsselung</title>
+        <title>WSC Gateway &amp; Hybrid Encryption (Opt-In)</title>
+        <title lang="de-DE">WSC Gateway &amp; Hybrid-Verschlüsselung (Opt-In)</title>
 
         <input-field type="bool">
             <name>hybridEnabled</name>
-            <label>Enable Hybrid Sync to WSC Gateway</label>
-            <label lang="de-DE">Hybrid-Synchronisation zum WSC Gateway aktivieren</label>
-            <defaultValue>true</defaultValue>
+            <label>Enable Hybrid Sync to WSC Cloud Gateway (Opt-In)</label>
+            <label lang="de-DE">Hybrid-Synchronisation zum WSC Cloud Gateway aktivieren (Opt-In)</label>
+            <defaultValue>false</defaultValue>
+            <helpText>Disabled by default for strict privacy compliance. Enable to pair with api.worldsearchcouncil.org.</helpText>
         </input-field>
 
         <input-field type="text">
@@ -60,13 +61,111 @@
         <input-field type="text">
             <name>projectId</name>
             <label>Project ID</label>
-            <helpText>Automatically generated during setup.</helpText>
+            <helpText>Assigned by WSC Gateway upon opt-in handshake (proj_...).</helpText>
+        </input-field>
+
+        <input-field type="password">
+            <name>apiSecret</name>
+            <label>Gateway HMAC API Secret</label>
+            <helpText>Issued during /v1/register handshake for X-WSC-Sig signing.</helpText>
+        </input-field>
+
+        <input-field type="password">
+            <name>localKey</name>
+            <label>Local AES-256 Key (64-char Hex)</label>
+            <helpText>Auto-generated 256-bit encryption key for micro-batch payloads and daily session hashing.</helpText>
+        </input-field>
+    </card>
+
+    <card>
+        <title>WSC Membership, Credentials &amp; Agency Co-Branding</title>
+        <title lang="de-DE">WSC Mitgliedschaft, Zertifizierung &amp; Agentur Co-Branding</title>
+
+        <input-field type="text">
+            <name>licenseKey</name>
+            <label>WSC Member / Partner Credential Key</label>
+            <label lang="de-DE">WSC Mitglieds- / Partner-Lizenzschlüssel</label>
+            <helpText>Optional credential from worldsearchcouncil.org/member/licenses. 100% of local features remain unlocked without a key.</helpText>
         </input-field>
 
         <input-field type="text">
-            <name>localKey</name>
-            <label>Local AES-256 Key</label>
-            <helpText>Local secret encryption key.</helpText>
+            <name>licenseStatus</name>
+            <label>Credential Status</label>
+            <defaultValue>unregistered</defaultValue>
+        </input-field>
+
+        <input-field type="text">
+            <name>licenseTier</name>
+            <label>Membership Tier</label>
+            <defaultValue>community</defaultValue>
+        </input-field>
+
+        <input-field type="text">
+            <name>licenseHolder</name>
+            <label>Verified Credential Holder</label>
+        </input-field>
+
+        <input-field type="int">
+            <name>licenseExpires</name>
+            <label>Credential Expiry (Unix Timestamp)</label>
+            <defaultValue>0</defaultValue>
+        </input-field>
+
+        <input-field type="bool">
+            <name>licenseIsDemo</name>
+            <label>Demo Sandbox Credential</label>
+            <defaultValue>false</defaultValue>
+        </input-field>
+
+        <input-field type="textarea">
+            <name>coBranding</name>
+            <label>Agency Co-Branding JSON</label>
+            <helpText>JSON configuration for agency_name, logo_url, support_url, support_email, custom_footer.</helpText>
+        </input-field>
+    </card>
+
+    <card>
+        <title>AI Readiness (/llms.txt), Benchmarks &amp; Opt-In IndexNow</title>
+        <title lang="de-DE">AI Readiness (/llms.txt), Benchmarks &amp; Opt-In IndexNow</title>
+
+        <input-field type="bool">
+            <name>llmsTxtEnabled</name>
+            <label>Serve Public /llms.txt AI Manifest</label>
+            <label lang="de-DE">Öffentliches /llms.txt KI-Manifest bereitstellen</label>
+            <defaultValue>true</defaultValue>
+        </input-field>
+
+        <input-field type="single-select">
+            <name>industryVertical</name>
+            <label>Industry Benchmark Vertical</label>
+            <label lang="de-DE">Branchen-Benchmark-Kategorie</label>
+            <defaultValue>/Shopping/Apparel</defaultValue>
+            <options>
+                <option><id>/Shopping/Apparel</id><name>E-Commerce: Fashion, Apparel &amp; Footwear</name></option>
+                <option><id>/Shopping/Consumer Electronics</id><name>E-Commerce: Consumer Electronics &amp; Tech</name></option>
+                <option><id>/Home &amp; Garden</id><name>Furniture, Home &amp; Garden</name></option>
+                <option><id>/Computers &amp; Electronics/Enterprise Software</id><name>IT, SaaS &amp; Enterprise Software</name></option>
+                <option><id>/Health/Medical &amp; Wellness</id><name>Health, Medical &amp; Wellness</name></option>
+                <option><id>/Business &amp; Industrial/Services</id><name>B2B, Consulting &amp; Professional Services</name></option>
+                <option><id>/Food &amp; Drink/Restaurants &amp; Groceries</id><name>Food, Restaurants &amp; Groceries</name></option>
+                <option><id>/News/Media &amp; Publishing</id><name>News, Media &amp; Digital Publishing</name></option>
+                <option><id>/Finance/Banking &amp; Insurance</id><name>Finance, Banking &amp; Insurance</name></option>
+                <option><id>/Travel/Tourism &amp; Hospitality</id><name>Travel, Tourism &amp; Hospitality</name></option>
+            </options>
+        </input-field>
+
+        <input-field type="bool">
+            <name>indexnowEnabled</name>
+            <label>Enable Automatic IndexNow Push on Product Save (Opt-In)</label>
+            <label lang="de-DE">Automatischen IndexNow-Push beim Speichern von Produkten aktivieren (Opt-In)</label>
+            <defaultValue>false</defaultValue>
+            <helpText>Strictly opt-in. Automatically pings api.indexnow.org when active products are updated.</helpText>
+        </input-field>
+
+        <input-field type="text">
+            <name>indexnowKey</name>
+            <label>IndexNow Verification Key (32-char Hex)</label>
+            <helpText>Auto-generated key served dynamically at /{key}.txt.</helpText>
         </input-field>
     </card>
 

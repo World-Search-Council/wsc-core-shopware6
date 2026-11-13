@@ -9,7 +9,7 @@ use Exception;
 use Psr\Log\LoggerInterface;
 
 /**
- * Manages local SQLite storage with WAL acceleration in Shopware 6.
+ * Manages local SQLite storage with WAL acceleration in Shopware 6 (Zero-PII).
  */
 class WscDatabaseManager
 {
@@ -127,6 +127,18 @@ class WscDatabaseManager
                     blocked INTEGER DEFAULT 0,
                     PRIMARY KEY (date, bot_name)
                 );
+
+                CREATE TABLE IF NOT EXISTS wsc_bot_hits (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    hit_at INTEGER NOT NULL,
+                    bot_name TEXT NOT NULL,
+                    bot_category TEXT NOT NULL,
+                    bot_type TEXT NOT NULL,
+                    url_path TEXT NOT NULL,
+                    session_hash TEXT DEFAULT ''
+                );
+                CREATE INDEX IF NOT EXISTS idx_wsc_bot_hits_time ON wsc_bot_hits (hit_at DESC);
+                CREATE INDEX IF NOT EXISTS idx_wsc_bot_hits_path ON wsc_bot_hits (url_path);
             ");
         } catch (Exception $e) {
             $this->logger->error('WSC Shopware SQLite Init Error: ' . $e->getMessage());
